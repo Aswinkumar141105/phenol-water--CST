@@ -7,15 +7,15 @@ st.set_page_config(page_title="Phenol-Water CST Experiment", layout="centered")
 
 st.title("🌡️ Determination of Critical Solution Temperature for Phenol-Water System")
 
-# A. AIM
+# AIM
 st.header("AIM")
 st.markdown("To determine the critical solution temperature (CST) for the phenol-water system and to find out the percentage of phenol in the given sample.")
 
-# B. APPARATUS
+# APPARATUS
 st.header("APPARATUS")
 st.markdown("Burette, boiling tube, thermometer, water bath, etc.")
 
-# C. PRINCIPLE
+# PRINCIPLE
 st.header("PRINCIPLE")
 st.markdown('''
 Phenol and water are partially miscible at ordinary temperatures. On shaking two liquids,
@@ -24,7 +24,7 @@ With increased temperature, mutual solubility increases until a critical tempera
 where they form a homogeneous solution.
 ''')
 
-# D. PROCEDURE
+# PROCEDURE
 st.header("PROCEDURE")
 st.markdown('''
 1. Add 5 ml of phenol in a boiling tube.
@@ -35,26 +35,33 @@ st.markdown('''
 6. Repeat for increasing water volumes.
 ''')
 
-# E. OBSERVATIONS
+# OBSERVATIONS
 st.header("OBSERVATIONS")
 
-# Simulated observation data
-data = {
-    "Vol. of phenol (ml)": [5]*15,
-    "Vol. of water (ml)": list(range(3, 33, 2)),
-    "Vol. % of phenol": [round(5 / (5 + v) * 100, 2) for v in range(3, 33, 2)],
-    "Temp. of disappearance (°C)": np.random.randint(60, 80, size=15),
-    "Temp. of appearance (°C)": np.random.randint(55, 75, size=15),
-}
+# User input: Number of observations
+num_points = st.slider("Select number of observations", min_value=5, max_value=20, value=10, step=1)
 
-df = pd.DataFrame(data)
+# Simulate data
+water_volumes = list(range(3, 3 + 2 * num_points, 2))
+phenol_volumes = [5] * len(water_volumes)
+phenol_percent = [round(5 / (5 + v) * 100, 2) for v in water_volumes]
+disappear_temps = np.random.randint(60, 80, size=len(water_volumes))
+appear_temps = np.random.randint(55, 75, size=len(water_volumes))
+
+df = pd.DataFrame({
+    "Vol. of phenol (ml)": phenol_volumes,
+    "Vol. of water (ml)": water_volumes,
+    "Vol. % of phenol": phenol_percent,
+    "Temp. of disappearance (°C)": disappear_temps,
+    "Temp. of appearance (°C)": appear_temps,
+})
+
 df["Mean Temp. (°C)"] = df[["Temp. of disappearance (°C)", "Temp. of appearance (°C)"]].mean(axis=1).round(2)
 
 st.dataframe(df)
 
-# F. MODEL GRAPH
+# MODEL GRAPH
 st.header("MODEL GRAPH")
-
 fig, ax = plt.subplots()
 ax.plot(df["Vol. % of phenol"], df["Mean Temp. (°C)"], marker='o', color='green')
 ax.set_xlabel("Volume % of Phenol")
@@ -62,11 +69,11 @@ ax.set_ylabel("Mean Miscibility Temperature (°C)")
 ax.set_title("Critical Solution Temperature Graph")
 st.pyplot(fig)
 
-# G. FORMULA
+# FORMULA
 st.header("FORMULA")
 st.latex(r"\text{Vol. \% of Phenol} = \frac{5}{5 + V_w} \times 100")
 
-# H. RESULT
+# RESULT
 st.header("RESULT")
 cst_index = df["Mean Temp. (°C)"].idxmax()
 cst_temp = df.loc[cst_index, "Mean Temp. (°C)"]
@@ -75,11 +82,7 @@ cst_comp = df.loc[cst_index, "Vol. % of phenol"]
 st.markdown(f"**CST of phenol-water system = {cst_temp} °C**")
 st.markdown(f"**Critical solution composition = {cst_comp}% phenol by volume**")
 
-# I. VIDEO SIMULATION
-st.header("EXPERIMENT SIMULATION")
-video_path = "Untitled design.mp4"
-st.video(video_path)
-
-# J. DOWNLOADABLE CSV
+# DOWNLOAD
+st.header("DOWNLOAD OBSERVATIONS")
 csv = df.to_csv(index=False).encode('utf-8')
-st.download_button("Download Observation Table", data=csv, file_name='cst_observations.csv', mime='text/csv')
+st.download_button("Download CSV", data=csv, file_name='cst_observations.csv', mime='text/csv')
