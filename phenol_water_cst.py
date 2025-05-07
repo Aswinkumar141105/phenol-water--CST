@@ -27,21 +27,21 @@ where they form a homogeneous solution.
 # PROCEDURE
 st.header("PROCEDURE")
 st.markdown('''
-1. Add 5 ml of phenol in a boiling tube.
-2. Add measured volumes of distilled water.
-3. Heat with constant stirring.
-4. Record temperature where turbidity disappears.
-5. Cool and note when turbidity reappears.
+1. Add 5 ml of phenol in a boiling tube.  
+2. Add measured volumes of distilled water.  
+3. Heat with constant stirring.  
+4. Record temperature where turbidity disappears.  
+5. Cool and note when turbidity reappears.  
 6. Repeat for increasing water volumes.
 ''')
 
 # OBSERVATIONS
 st.header("OBSERVATIONS")
 
-# User input: Number of observations
-num_points = st.slider("Select number of observations", min_value=5, max_value=20, value=10, step=1)
+# User input for number of observations
+num_points = st.slider("Select number of observations", min_value=6, max_value=15, value=10, step=1)
 
-# Simulate data
+# Simulated data
 water_volumes = list(range(3, 3 + 2 * num_points, 2))
 phenol_volumes = [5] * len(water_volumes)
 phenol_percent = [round(5 / (5 + v) * 100, 2) for v in water_volumes]
@@ -57,16 +57,38 @@ df = pd.DataFrame({
 })
 
 df["Mean Temp. (°C)"] = df[["Temp. of disappearance (°C)", "Temp. of appearance (°C)"]].mean(axis=1).round(2)
-
 st.dataframe(df)
 
 # MODEL GRAPH
 st.header("MODEL GRAPH")
+
+# Polynomial fitting for smooth curve
+x = df["Vol. % of phenol"]
+y = df["Mean Temp. (°C)"]
+coeffs = np.polyfit(x, y, 2)
+poly = np.poly1d(coeffs)
+
+x_fit = np.linspace(min(x), max(x), 100)
+y_fit = poly(x_fit)
+
+# Find maximum (vertex of the parabola)
+a, b, c = coeffs
+cst_comp_fit = -b / (2 * a)
+cst_temp_fit = poly(cst_comp_fit)
+
+# Plotting
 fig, ax = plt.subplots()
-ax.plot(df["Vol. % of phenol"], df["Mean Temp. (°C)"], marker='o', color='green')
+ax.plot(x, y, 'o', label='Observed Points')
+ax.plot(x_fit, y_fit, '-', color='green', label='Fitted Curve')
+ax.plot(cst_comp_fit, cst_temp_fit, 'ro', label='CST Point')
+ax.annotate(f'CST = {cst_temp_fit:.1f} °C\n@ {cst_comp_fit:.1f}% phenol',
+            xy=(cst_comp_fit, cst_temp_fit),
+            xytext=(cst_comp_fit + 2, cst_temp_fit + 2),
+            arrowprops=dict(arrowstyle='->', color='red'))
 ax.set_xlabel("Volume % of Phenol")
 ax.set_ylabel("Mean Miscibility Temperature (°C)")
 ax.set_title("Critical Solution Temperature Graph")
+ax.legend()
 st.pyplot(fig)
 
 # FORMULA
@@ -75,14 +97,32 @@ st.latex(r"\text{Vol. \% of Phenol} = \frac{5}{5 + V_w} \times 100")
 
 # RESULT
 st.header("RESULT")
-cst_index = df["Mean Temp. (°C)"].idxmax()
-cst_temp = df.loc[cst_index, "Mean Temp. (°C)"]
-cst_comp = df.loc[cst_index, "Vol. % of phenol"]
+st.markdown(f"**The CST of phenol-water system was found to be = {round(cst_temp_fit, 2)} °C**")
+st.markdown(f"**The critical solution composition was found to be = {round(cst_comp_fit, 2)}% by volume of phenol.**")
+st.markdown("**The percentage of phenol in the given sample was found to be ——— % by volume.** *(to be filled during lab)*")
 
-st.markdown(f"**CST of phenol-water system = {cst_temp} °C**")
-st.markdown(f"**Critical solution composition = {cst_comp}% phenol by volume**")
+# QUESTIONS
+st.header("📋 PRE-LAB AND POST-LAB QUESTIONS")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.subheader("Pre-Lab Questions")
+    st.markdown('''
+    1. Define partially miscible systems.  
+    2. Define critical solution temperature.  
+    3. How does temperature affect the solubility of binary liquid systems?
+    ''')
+
+with col2:
+    st.subheader("Post-Lab Questions")
+    st.markdown('''
+    1. List the different types of partially miscible systems.  
+    2. Give the significance of critical solution temperature.  
+    3. How does temperature affect the solubility of phenol-water system?
+    ''')
 
 # DOWNLOAD
-st.header("DOWNLOAD OBSERVATIONS")
+st.header("📥 DOWNLOAD OBSERVATIONS")
 csv = df.to_csv(index=False).encode('utf-8')
 st.download_button("Download CSV", data=csv, file_name='cst_observations.csv', mime='text/csv')
