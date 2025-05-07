@@ -1,0 +1,4 @@
+cd your-repository-name
+git add .
+git commit -m "Initial commit with Streamlit app"
+git push origin main
